@@ -1,0 +1,56 @@
+<html>
+<head>
+    <title>100worlds</title>
+    <style>
+body {
+    font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Ubuntu","Roboto","Noto Sans","Droid Sans",sans-serif;
+    {#font-size: 10pt;#}
+    color: #888;
+    margin: 0;
+}
+
+code {
+    font-family: ui-monospace,"Cascadia Mono","Segoe UI Mono","Ubuntu Mono","Roboto Mono",Menlo,Monaco,Consolas,monospace;
+    font-size: 9pt;
+}
+
+.status-bar {
+    background-color: #afc1c6;
+    font-weight: bold;
+    padding: 5px 8px;
+
+    display: inline-block;
+}
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+{#    <div style="text-align: right; position: fixed; width: 100%; z-index: 100"><div class="status-bar">[[ statusText ]]</div></div>#}
+
+<!--    <div v-for="object in data.objects">-->
+<!--        <h4>[[object.displayName]] <code>[[object.name]]: [[object.mimeType]]</code></h4>-->
+
+<!--        &lt;!&ndash; display images &ndash;&gt;-->
+<!--        <div v-if="object.imageDataUrl"><img v-bind:src="object.imageDataUrl"></div>-->
+
+<!--        &lt;!&ndash; display monospace text &ndash;&gt;-->
+<!--        <code v-if="object.mimeType == 'application/json'">[[ object.data ]]</code>-->
+{#    </div>#}
+
+</div>
+
+{#<div id="layout-container" style="width: 100vw; height: 100vh"></div>#}
+
+{#<script src="{{ url_for('static', filename='cbor.js') }}" type="text/javascript"></script>#}
+{#<script src="https://unpkg.com/vue@3"></script>#}
+{#<script type="text/javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>#}
+{#<script type="text/javascript" src="https://golden-layout.com/files/latest/js/goldenlayout.min.js"></script>#}
+
+<link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-base.css" />
+<link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-dark-theme.css" />
+
+<script src="{{ url_for('static', filename='js-built/index.js') }}"></script>
+
+</body>
+</html>
