@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+import os
 from threading import Thread, Event
 
 import gevent.queue
@@ -74,7 +75,7 @@ def create_app():
     app.register_blueprint(html, url_prefix=r'/')
     sockets.register_blueprint(ws, url_prefix=r'/')
 
-    app.config["exchange_name"] = "100worlds.cbor"
+    app.config["exchange_name"] = os.getenv("EXCHANGE_NAME")
 
     app.bus = MessageBus()
 
