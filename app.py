@@ -48,24 +48,30 @@ def ws_handler(socket: WebSocket):
 
 
 def amqp_subscriber(*, bus, exchange_name, cancellation_event):
-    with pika.BlockingConnection(pika.ConnectionParameters("localhost")) as connection:
-        channel = connection.channel()
+    while True:
+        try:
+            with pika.BlockingConnection(pika.ConnectionParameters("localhost")) as connection:
+                channel = connection.channel()
 
-        channel.exchange_declare(exchange=exchange_name,
-                                 exchange_type="fanout")
+                channel.exchange_declare(exchange=exchange_name,
+                                        exchange_type="fanout")
 
-        result = channel.queue_declare(queue="", exclusive=True)
-        queue_name = result.method.queue
+                result = channel.queue_declare(queue="", exclusive=True)
+                queue_name = result.method.queue
 
-        channel.queue_bind(exchange=exchange_name, queue=queue_name)
+                channel.queue_bind(exchange=exchange_name, queue=queue_name)
 
-        for method, properties, body in channel.consume(queue=queue_name):
-            if cancellation_event.is_set():
-                break
+                for method, properties, body in channel.consume(queue=queue_name):
+                    if cancellation_event.is_set():
+                        break
 
-            # logger.info("internal pub")
-            bus.publish(Message(body=body))
-            channel.basic_ack(method.delivery_tag)
+                    # logger.info("internal pub")
+                    bus.publish(Message(body=body))
+                    channel.basic_ack(method.delivery_tag)
+        except Exception as e:
+            logger.exception("AMQP error", e)
+
+        time.sleep(1)
 
 
 def create_app():
