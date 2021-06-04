@@ -1,34 +1,65 @@
 import { CBOR } from 'cbor-redux';
-import {ComponentContainer, GoldenLayout, JsonValue, LayoutConfig, LayoutManager, RowOrColumn} from 'golden-layout';
-import {createApp, h} from 'vue';
+import {
+    ComponentContainer,
+    ComponentItemConfig,
+    GoldenLayout,
+    LayoutConfig,
+    RowOrColumn
+} from 'golden-layout';
+import {createApp, h, Component} from 'vue';
 
-function renderToString(object) {
-    let s = `<h4>${object.displayName} <code>${object.name}: ${object.mimeType}</code></h4>`;
+// function renderToString(object) {
+//     let s = `<h4>${object.displayName} <code>${object.name}: ${object.mimeType}</code></h4>`;
 
-    if (object.imageDataUrl) {
-        s += `<img src=${object.imageDataUrl}>`;
-    }
+//     if (object.imageDataUrl) {
+//         s += `<img src=${object.imageDataUrl}>`;
+//     }
 
-    if (object.mimeType === 'application/json') {
-        s += `<code>${object.data}</code>`;
-    }
+//     if (object.mimeType === 'application/json') {
+//         s += `<code>${object.data}</code>`;
+//     }
 
-    return s;
-}
-function renderToVue(object) {
+//     return s;
+// }
+
+function tsimUnitStateMultipleHandler(object) {
     const children = [];
 
-    children.push(h('h4', {}, [
-        object.displayName, " ",
-        h('code', {}, `${object.name}: ${object.mimeType}`)]
-    ));
+    // children.push(h('h4', {}, [
+    //     object.displayName, " ",
+    //     h('code', {}, `${object.name}: ${object.mimeType}`)]
+    // ));
+
+    children.push(h('code', {style: "white-space: pre;"}, JSON.stringify(object.data, null, 2)));
+    // children.push(h('code', {}, [h('pre', {}, JSON.stringify(object.data, null, 2))]));
+
+    return h('div', {}, children);
+}
+
+const mimeMapping = {
+    "TSIM.ControlSystemStateMap": tsimUnitStateMultipleHandler
+};
+
+function renderToVue(object) {
+    if (mimeMapping.hasOwnProperty(object.mimeType)) {
+        return mimeMapping[object.mimeType](object);
+    }
+
+    const children = [];
+
+    // children.push(h('h4', {}, [
+    //     object.displayName, " ",
+    //     h('code', {}, `${object.name}: ${object.mimeType}`)]
+    // ));
 
     if (object.imageDataUrl) {
         children.push(h('img', {src: object.imageDataUrl}));
     }
-
-    if (object.mimeType === 'application/json') {
+    else if (object.mimeType === 'application/json') {
         children.push(h('code', {}, object.data));
+    }
+    else {
+        children.push(h('div', {}, "Unrecognized object type"));
     }
 
     return h('div', {}, children);
@@ -69,12 +100,13 @@ const initPane = function(container: ComponentContainer, componentState) {
     // container.element.innerHTML = "<componentx v-bind:object='object'></componentx>"
     const appInst = app.mount(container.element)
 
-    container.layoutManager.eventHub.on("userBroadcast", object => {
+    container.layoutManager.eventHub.on("userBroadcast", (object: any) => {
         // console.log("userBroadcast", componentState.objectName, "x", object.name)
 
         if (componentState.objectName === object.name) {
             // container.element.innerHTML = renderToString(object);
 
+            // @ts-ignore
             appInst.objectData = object;
         }
     });
@@ -123,11 +155,41 @@ const config: LayoutConfig = {
 window.addEventListener("load", () => {
     const gl = new GoldenLayout(/*document.getElementById('layout-container')*/);
     gl.registerComponentFactoryFunction( 'testComponent', initPane);
-    gl.loadLayout(config);
 
-    const windows = {};
+    const savedState = localStorage.getItem('savedState');
 
-    const MyApplication = {
+    if (savedState !== null) {
+        // console.log("LOAD", savedState);
+        gl.loadLayout(JSON.parse(savedState));
+    } else {
+        gl.loadLayout(config);
+    }
+
+    gl.on('stateChanged', () => {
+        const state = JSON.stringify(gl.saveLayout());
+        // console.log('savedState', state);
+        localStorage.setItem('savedState', state);
+    });
+
+    function createComponentIfNotExists(gl: GoldenLayout, id: string, title: string): void {
+        // Try to look up component by ID, and if not found, create it & add to the layout
+        const component = gl.findFirstComponentItemById(id);
+        // console.log(id, "=>", component);
+
+        if (component === undefined) {
+            const newItemConfig: ComponentItemConfig = {
+                id: id,
+                type: 'component',
+                componentType: 'testComponent',
+                componentState: {objectName: id},
+                title: title,
+            };
+
+            (gl.rootItem as RowOrColumn).addItem(newItemConfig);
+        }
+    }
+
+    const MyApplication: Component = {
         data() {
             return {
                 data: null,
@@ -164,26 +226,7 @@ window.addEventListener("load", () => {
                         );
                     }
 
-                    if (!windows.hasOwnProperty(object.name)) {
-                        var newItemConfig = {
-                            type: 'component',
-                            componentType: 'testComponent',
-                            componentState: {/*object: object*/ objectName: object.name},
-                            title: `${object.displayName} (${object.name} : ${object.mimeType})`,
-                        };
-
-                        //windows[object.name].componentState = newItemConfig.componentState;
-                        //myLayout.root.contentItems[ 0 ].removeChild(windows[object.name]);
-                        // updatePane(windows[object.name], {object: object});
-
-                        // myLayout.()
-                        // const ci = myLayout.createAndInitContentItem(newItemConfig, myLayout.root.contentItems[0]);
-                        // const acx = myLayout.root.contentItems[ 0 ].addChild( ci );
-                        (gl.rootItem as RowOrColumn).addItem(newItemConfig);
-                        // console.log("ci => ", acx);
-                        windows[object.name] = true;
-                        // setTimeout(() => console.log(newItemConfig), 1000);
-                    }
+                    createComponentIfNotExists(gl, object.name, `${object.displayName} (${object.name} : ${object.mimeType})`);
 
                     setTimeout(() => gl.eventHub.emit("userBroadcast", object));
                 }

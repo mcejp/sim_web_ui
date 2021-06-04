@@ -24,4 +24,8 @@ module.exports = {
         path: path.resolve(__dirname, 'static/js-built'),
         filename: "index.js"
     },
+    watchOptions: {
+        // Need this on NFS
+        poll: 5000,
+    }
 };
