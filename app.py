@@ -28,7 +28,7 @@ pika_cancellation_event: Event = None
 
 @html.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", exchange_name=current_app.config["exchange_name"])
 
 
 @ws.route("/ws")

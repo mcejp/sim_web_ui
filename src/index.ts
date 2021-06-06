@@ -8,6 +8,8 @@ import {
 } from 'golden-layout';
 import {createApp, h, Component} from 'vue';
 
+declare const EXCHANGE_NAME: string;
+
 // function renderToString(object) {
 //     let s = `<h4>${object.displayName} <code>${object.name}: ${object.mimeType}</code></h4>`;
 
@@ -156,7 +158,8 @@ window.addEventListener("load", () => {
     const gl = new GoldenLayout(/*document.getElementById('layout-container')*/);
     gl.registerComponentFactoryFunction( 'testComponent', initPane);
 
-    const savedState = localStorage.getItem('savedState');
+    const savedStateKey = 'savedState.' + EXCHANGE_NAME;
+    const savedState = localStorage.getItem(savedStateKey);
 
     if (savedState !== null) {
         // console.log("LOAD", savedState);
@@ -168,7 +171,7 @@ window.addEventListener("load", () => {
     gl.on('stateChanged', () => {
         const state = JSON.stringify(gl.saveLayout());
         // console.log('savedState', state);
-        localStorage.setItem('savedState', state);
+        localStorage.setItem(savedStateKey, state);
     });
 
     function createComponentIfNotExists(gl: GoldenLayout, id: string, title: string): void {
