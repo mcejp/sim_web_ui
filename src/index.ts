@@ -155,8 +155,14 @@ const config: LayoutConfig = {
 };
 
 window.addEventListener("load", () => {
-    const gl = new GoldenLayout(/*document.getElementById('layout-container')*/);
+    const container = document.getElementById('layout-container');
+    const gl = new GoldenLayout(container);
     gl.registerComponentFactoryFunction( 'testComponent', initPane);
+
+    window.addEventListener("resize", () => {
+        console.log(container.clientWidth, container.clientHeight);
+        gl.setSize(container.clientWidth, container.clientHeight);
+    })
 
     const savedStateKey = 'savedState.' + EXCHANGE_NAME;
     const savedState = localStorage.getItem(savedStateKey);
@@ -211,8 +217,8 @@ window.addEventListener("load", () => {
             const websocket = new WebSocket("ws://localhost:5000/ws");
             websocket.binaryType = "arraybuffer";
 
-            websocket.onopen = () => this.statusText = ("Connected");
-            websocket.onclose = () => this.statusText = ("Disconnected");
+            websocket.onopen = () => this.statusText = ("Connected to " + websocket.url);
+            websocket.onclose = (ev: CloseEvent) => this.statusText = ("Connection lost.");
             websocket.onerror = (err) => this.statusText = ("Error: " + err.toString());
 
             websocket.onmessage = (event) => {
@@ -241,5 +247,5 @@ window.addEventListener("load", () => {
     }
 
     const app = createApp(MyApplication)
-    const instance = app.mount("#app-container")
+    const instance = app.mount("#top-bar")
 })
