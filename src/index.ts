@@ -160,7 +160,6 @@ window.addEventListener("load", () => {
     gl.registerComponentFactoryFunction( 'testComponent', initPane);
 
     window.addEventListener("resize", () => {
-        console.log(container.clientWidth, container.clientHeight);
         gl.setSize(container.clientWidth, container.clientHeight);
     })
 
@@ -213,8 +212,11 @@ window.addEventListener("load", () => {
         created() {
             this.statusText = "Connecting to WebSocket";
 
-            // TODO: https://stackoverflow.com/questions/10406930/how-to-construct-a-websocket-uri-relative-to-the-page-uri
-            const websocket = new WebSocket("ws://localhost:5000/ws");
+            // Construct WS URL (per https://stackoverflow.com/questions/10406930/how-to-construct-a-websocket-uri-relative-to-the-page-uri)
+            const loc = window.location
+            const protocol = (loc.protocol === "https:") ? "wss" : "ws";
+
+            const websocket = new WebSocket(protocol + "://" + loc.host + loc.pathname + "/ws");
             websocket.binaryType = "arraybuffer";
 
             websocket.onopen = () => this.statusText = ("Connected to " + websocket.url);
